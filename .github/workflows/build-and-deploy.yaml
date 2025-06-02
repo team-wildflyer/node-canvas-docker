@@ -1,5 +1,9 @@
 name: Build and Deploy Base Image
 
+permissions:
+  contents: read
+  security-events: write
+
 on:
   push:
     branches: [ main, develop ]
