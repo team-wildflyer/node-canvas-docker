@@ -1,0 +1,36 @@
+{
+  "name": "node-base-image",
+  "version": "1.0.0",
+  "description": "Custom Node.js base Docker image with prebuilt native modules",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/your-username/node-base-image.git"
+  },
+  "keywords": [
+    "docker",
+    "nodejs",
+    "base-image",
+    "canvas",
+    "native-modules",
+    "scaleway"
+  ],
+  "author": "Your Name <your.email@example.com>",
+  "license": "MIT",
+  "scripts": {
+    "build": "docker build -t node-base:local .",
+    "build:multi": "docker buildx build --platform linux/amd64,linux/arm64 -t node-base:local .",
+    "test": "docker run --rm node-base:local show-prebuilt-modules",
+    "test:canvas": "docker run --rm node-base:local node -e \"require('/opt/prebuilt-modules/node_modules/canvas'); console.log('Canvas OK')\"",
+    "test:sharp": "docker run --rm node-base:local node -e \"require('/opt/prebuilt-modules/node_modules/sharp'); console.log('Sharp OK')\"",
+    "test:all": "npm run test && npm run test:canvas && npm run test:sharp",
+    "scan": "docker run --rm -v /var/run/docker.sock:/var/run/docker.sock -v $(pwd):/tmp/.cache/ aquasec/trivy:latest image node-base:local",
+    "clean": "docker system prune -f && docker image prune -f"
+  },
+  "engines": {
+    "node": ">=22.16.0",
+    "docker": ">=20.0.0"
+  },
+  "devDependencies": {
+    "@types/node": "^22.0.0"
+  }
+}
