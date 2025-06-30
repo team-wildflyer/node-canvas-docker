@@ -6,28 +6,13 @@ LABEL version="1.0.0"
 
 # Install system dependencies for canvas and other native modules
 RUN apt-get update && apt-get install -y --no-install-recommends \
-    python3 \
-    python3-pip \
-    build-essential \
-    g++ \
-    make \
-    libcairo2-dev \
-    libpango1.0-dev \
-    libjpeg-dev \
-    libgif-dev \
-    librsvg2-dev \
-    libfontconfig1-dev \
-    fontconfig \
-    fonts-freefont-ttf \
-    fonts-liberation \
-    git \
-    ca-certificates \
-    bash \
-    curl \
+    python3 python3-pip build-essential g++ make libcairo2-dev libpango1.0-dev \
+    libjpeg-dev libgif-dev librsvg2-dev libfontconfig1-dev fontconfig \
+    fonts-freefont-ttf fonts-liberation git ca-certificates bash curl \
     && rm -rf /var/lib/apt/lists/*
 
-# Install global packages
-RUN npm install -g pnpm@10.2.1 turbo npm-check-updates
+# Install global packages (optimized)
+RUN npm install -g pnpm@10.2.1 turbo npm-check-updates yarn
 
 # Create cache directories
 RUN mkdir -p /opt/prebuilt-modules /opt/module-cache
@@ -35,7 +20,6 @@ RUN mkdir -p /opt/prebuilt-modules /opt/module-cache
 # Pre-install and build common native modules
 WORKDIR /tmp/prebuilt
 
-# Create package.json with common native modules
 RUN echo '{ \
   "name": "prebuilt-modules", \
   "version": "1.0.0", \
@@ -52,11 +36,11 @@ RUN echo '{ \
 # Install and build native modules
 RUN pnpm install --no-frozen-lockfile
 
-# Rebuild each native module to ensure proper compilation
-RUN cd node_modules/canvas && npm rebuild --build-from-source
-RUN cd node_modules/sharp && npm rebuild --build-from-source || true
-RUN cd node_modules/bcrypt && npm rebuild --build-from-source || true
-RUN cd node_modules/sqlite3 && npm rebuild --build-from-source || true
+# Rebuild native modules (optimized)
+RUN for module in canvas sharp bcrypt sqlite3; do \
+    cd "node_modules/$module" && npm rebuild --build-from-source || true; \
+    cd -; \
+done
 
 # Verify canvas was built properly
 RUN cd node_modules/canvas && \
@@ -68,13 +52,13 @@ RUN cd node_modules/canvas && \
 RUN cp -r node_modules /opt/prebuilt-modules/
 RUN cp package.json /opt/prebuilt-modules/
 
-# Create module info file using a different approach to avoid shell escaping issues
+# Create module info file clearly
 RUN cd node_modules && \
     echo "# Prebuilt Native Modules" > /opt/prebuilt-modules/MODULE_INFO.md && \
-    echo "Canvas: $(node -pe "require('./canvas/package.json').version")" >> /opt/prebuilt-modules/MODULE_INFO.md && \
-    echo "Sharp: $(node -pe "require('./sharp/package.json').version")" >> /opt/prebuilt-modules/MODULE_INFO.md && \
-    echo "Bcrypt: $(node -pe "require('./bcrypt/package.json').version")" >> /opt/prebuilt-modules/MODULE_INFO.md && \
-    echo "SQLite3: $(node -pe "require('./sqlite3/package.json').version")" >> /opt/prebuilt-modules/MODULE_INFO.md && \
+    for mod in canvas sharp bcrypt sqlite3; do \
+      version=$(node -pe "require('./$mod/package.json').version"); \
+      echo "$mod: $version" >> /opt/prebuilt-modules/MODULE_INFO.md; \
+    done && \
     echo "Built on: $(date)" >> /opt/prebuilt-modules/MODULE_INFO.md && \
     echo "Node version: $(node --version)" >> /opt/prebuilt-modules/MODULE_INFO.md && \
     echo "NPM version: $(npm --version)" >> /opt/prebuilt-modules/MODULE_INFO.md && \
@@ -96,4 +80,4 @@ ls -la /opt/prebuilt-modules/node_modules/\n\
 ' > /usr/local/bin/show-prebuilt-modules && chmod +x /usr/local/bin/show-prebuilt-modules
 
 # Verify installations
-RUN node --version && npm --version && pnpm --version && turbo --version
+RUN node --version && npm --version && pnpm --version && turbo --version && yarn --version
