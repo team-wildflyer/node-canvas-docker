@@ -12,7 +12,7 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     && rm -rf /var/lib/apt/lists/*
 
 # Install global packages (optimized)
-RUN npm install -g pnpm@10.2.1 turbo npm-check-updates yarn
+RUN npm install -g pnpm@10.2.1 turbo npm-check-updates
 
 # Create cache directories
 RUN mkdir -p /opt/prebuilt-modules /opt/module-cache
