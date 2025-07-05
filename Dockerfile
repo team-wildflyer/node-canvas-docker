@@ -9,6 +9,7 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     python3 python3-pip build-essential g++ make libcairo2-dev libpango1.0-dev \
     libjpeg-dev libgif-dev librsvg2-dev libfontconfig1-dev fontconfig \
     fonts-freefont-ttf fonts-liberation git ca-certificates bash curl \
+    gdal-bin libgdal-dev \
     && rm -rf /var/lib/apt/lists/*
 
 # Install global packages (optimized)
