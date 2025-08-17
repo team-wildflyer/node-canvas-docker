@@ -6,9 +6,6 @@ on:
     tags: [ 'v*' ]
   pull_request:
     branches: [ main ]
-  schedule:
-    # Rebuild weekly on Sundays at 2 AM UTC
-    - cron: '0 2 * * 0'
   workflow_dispatch:
     inputs:
       node_version:
